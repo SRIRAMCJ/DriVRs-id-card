@@ -57,7 +57,6 @@ button{flex:1;border:0;border-radius:12px;padding:12px 14px;font-weight:750;curs
   </div>
   <div class="badge">LOCAL ONLY</div>
 </header>
-
 <div class="grid">
 <section class="panel">
   <label>Photo</label>
@@ -66,23 +65,22 @@ button{flex:1;border:0;border-radius:12px;padding:12px 14px;font-weight:750;curs
     <div id="dropText"><strong>Drag & drop your photo</strong><span>or click to choose an image</span></div>
     <input id="file" type="file" accept="image/*" hidden>
   </div>
-
   <label for="name">Name</label>
   <input id="name" placeholder="Enter your name" autocomplete="off">
-
   <label for="age">Age</label>
   <input id="age" type="number" min="0" max="150" placeholder="Enter age" autocomplete="off">
-
+  <label for="phone">Phone Number</label>
+  <input id="phone" type="tel" inputmode="tel" placeholder="Enter phone number" autocomplete="off">
   <label for="license">License Number</label>
   <input id="license" placeholder="Enter license number" autocomplete="off">
-
+  <label for="experience">Driving Experience (Years)</label>
+  <input id="experience" type="number" min="0" max="100" step="1" placeholder="Enter years of experience" autocomplete="off">
   <div class="buttons">
     <button class="secondary" id="reset">Reset</button>
     <button class="primary" id="download">Download ID</button>
   </div>
-  <div class="note">Nothing is uploaded or saved. The photo exists only in this page's memory and disappears when you close or refresh the page.</div>
+  <div class="note">Nothing is uploaded or saved. All entered data and the photo exist only in this page's memory and disappear when you close or refresh the page.</div>
 </section>
-
 <section class="panel card-wrap">
   <div class="id-card" id="card">
     <div class="card-content">
@@ -92,7 +90,9 @@ button{flex:1;border:0;border-radius:12px;padding:12px 14px;font-weight:750;curs
         <h2 class="name" id="cardName">YOUR NAME</h2>
         <div class="fields">
           <div class="field"><small>AGE</small><div id="cardAge">—</div></div>
+          <div class="field"><small>PHONE</small><div id="cardPhone">—</div></div>
           <div class="field"><small>LICENSE NO.</small><div id="cardLicense">—</div></div>
+          <div class="field"><small>DRIVING EXP.</small><div id="cardExperience">—</div></div>
         </div>
       </div>
     </div>
@@ -101,165 +101,49 @@ button{flex:1;border:0;border-radius:12px;padding:12px 14px;font-weight:750;curs
 </section>
 </div>
 </div>
-
 <script>
 const $=id=>document.getElementById(id);
 let photoData=null;
-
 function update(){
   $("cardName").textContent=$("name").value.trim()||"YOUR NAME";
   $("cardAge").textContent=$("age").value.trim()||"—";
+  $("cardPhone").textContent=$("phone").value.trim()||"—";
   $("cardLicense").textContent=$("license").value.trim()||"—";
+  const exp=$("experience").value.trim();
+  $("cardExperience").textContent=exp?`${exp} ${exp==="1"?"year":"years"}`:"—";
 }
-["name","age","license"].forEach(id=>$(id).addEventListener("input",update));
-
+["name","age","phone","license","experience"].forEach(id=>$(id).addEventListener("input",update));
 $("drop").addEventListener("click",()=>$("file").click());
 ["dragenter","dragover"].forEach(e=>$("drop").addEventListener(e,ev=>{ev.preventDefault();$("drop").classList.add("drag")}));
 ["dragleave","drop"].forEach(e=>$("drop").addEventListener(e,ev=>{ev.preventDefault();$("drop").classList.remove("drag")}));
-$("drop").addEventListener("drop",ev=>{const f=ev.dataTransfer.files[0]; if(f) loadPhoto(f)});
-$("file").addEventListener("change",ev=>{const f=ev.target.files[0]; if(f) loadPhoto(f)});
-
+$("drop").addEventListener("drop",ev=>{const f=ev.dataTransfer.files[0];if(f)loadPhoto(f)});
+$("file").addEventListener("change",ev=>{const f=ev.target.files[0];if(f)loadPhoto(f)});
 function loadPhoto(file){
-  if(!file.type.startsWith("image/")) return;
+  if(!file.type.startsWith("image/"))return;
   const reader=new FileReader();
-  reader.onload=()=>{
-    photoData=reader.result;
-    $("preview").src=photoData;$("preview").hidden=false;$("dropText").style.display="none";
-    $("cardPhoto").src=photoData;$("cardPhoto").hidden=false;$("placeholder").style.display="none";
-  };
+  reader.onload=()=>{photoData=reader.result;$("preview").src=photoData;$("preview").hidden=false;$("dropText").style.display="none";$("cardPhoto").src=photoData;$("cardPhoto").hidden=false;$("placeholder").style.display="none"};
   reader.readAsDataURL(file);
 }
-
 $("reset").addEventListener("click",()=>{
-  ["name","age","license"].forEach(id=>$(id).value="");
-  $("file").value="";photoData=null;
-  $("preview").hidden=true;$("dropText").style.display="";
-  $("cardPhoto").hidden=true;$("placeholder").style.display="";
-  update();
+  ["name","age","phone","license","experience"].forEach(id=>$(id).value="");
+  $("file").value="";photoData=null;$("preview").hidden=true;$("dropText").style.display="";$("cardPhoto").hidden=true;$("placeholder").style.display="";update();
 });
-
-$("download").addEventListener("click", async ()=>{
-  const W = 1200, H = 757;
-  const c = document.createElement("canvas");
-  c.width = W; c.height = H;
-  const ctx = c.getContext("2d");
-
-  // Card background
-  const bg = ctx.createLinearGradient(0,0,W,H);
-  bg.addColorStop(0,"#0c1728");
-  bg.addColorStop(.55,"#112c3b");
-  bg.addColorStop(1,"#0a101b");
-  ctx.fillStyle = bg;
-  roundRect(ctx,0,0,W,H,42);
-  ctx.fill();
-  ctx.strokeStyle="#36536b";
-  ctx.lineWidth=2;
-  roundRect(ctx,1,1,W-2,H-2,42);
-  ctx.stroke();
-
-  // Decorative circles
-  ctx.fillStyle="rgba(53,208,186,.12)";
-  ctx.beginPath();ctx.arc(1120,0,250,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle="rgba(91,137,255,.10)";
-  ctx.beginPath();ctx.arc(0,H,175,0,Math.PI*2);ctx.fill();
-
-  // Photo
-  const px=56, py=215, pw=290, ph=365;
-  ctx.save();
-  roundRect(ctx,px,py,pw,ph,30);ctx.clip();
-  ctx.fillStyle="#17263a";ctx.fillRect(px,py,pw,ph);
-  if(photoData){
-    const img=await loadImage(photoData);
-    const ratio=Math.max(pw/img.width,ph/img.height);
-    const iw=img.width*ratio, ih=img.height*ratio;
-    ctx.drawImage(img,px+(pw-iw)/2,py+(ph-ih)/2,iw,ih);
-  } else {
-    ctx.fillStyle="#52657d";
-    ctx.font="bold 92px Arial";ctx.textAlign="center";ctx.textBaseline="middle";
-    ctx.fillText("ID",px+pw/2,py+ph/2);
-  }
-  ctx.restore();
-  ctx.strokeStyle="#456079";ctx.lineWidth=4;
-  roundRect(ctx,px,py,pw,ph,30);ctx.stroke();
-
-  // Text
-  ctx.textAlign="left";
-  ctx.fillStyle="#77e5d5";
-  ctx.font="800 22px Arial";
-  ctx.fillText("PERSONAL IDENTITY",410,82);
-
-  ctx.fillStyle="#a9b9cc";
-  ctx.strokeStyle="#34546b";ctx.lineWidth=2;
-  roundRect(ctx,960,55,170,42,21);ctx.stroke();
-  ctx.font="700 17px Arial";ctx.textAlign="center";
-  ctx.fillText("ID CARD",1045,82);
-
-  ctx.textAlign="left";
-  const name=($("name").value.trim()||"YOUR NAME").toUpperCase();
-  ctx.fillStyle="#f5f7fb";
-  ctx.font="900 58px Arial";
-  drawWrappedText(ctx,name,410,175,700,70);
-
-  drawField(ctx,"AGE",$("age").value.trim()||"—",410,330);
-  drawField(ctx,"LICENSE NO.",$("license").value.trim()||"—",700,330);
-
-  ctx.fillStyle="#687e95";
-  ctx.font="12px Arial";
-  ctx.textAlign="right";
-  ctx.fillText("GENERATED LOCALLY • NO DATA STORED",1140,720);
-
-  c.toBlob(blob=>{
-    if(!blob){ alert("Your browser could not create the image."); return; }
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement("a");
-    a.href=url;
-    a.download="id-card.png";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),1000);
-  },"image/png");
+$("download").addEventListener("click",async()=>{
+  const W=1200,H=757,c=document.createElement("canvas");c.width=W;c.height=H;const ctx=c.getContext("2d");
+  const bg=ctx.createLinearGradient(0,0,W,H);bg.addColorStop(0,"#0c1728");bg.addColorStop(.55,"#112c3b");bg.addColorStop(1,"#0a101b");ctx.fillStyle=bg;roundRect(ctx,0,0,W,H,42);ctx.fill();ctx.strokeStyle="#36536b";ctx.lineWidth=2;roundRect(ctx,1,1,W-2,H-2,42);ctx.stroke();
+  ctx.fillStyle="rgba(53,208,186,.12)";ctx.beginPath();ctx.arc(1120,0,250,0,Math.PI*2);ctx.fill();ctx.fillStyle="rgba(91,137,255,.10)";ctx.beginPath();ctx.arc(0,H,175,0,Math.PI*2);ctx.fill();
+  const px=56,py=215,pw=290,ph=365;ctx.save();roundRect(ctx,px,py,pw,ph,30);ctx.clip();ctx.fillStyle="#17263a";ctx.fillRect(px,py,pw,ph);
+  if(photoData){const img=await loadImage(photoData);const ratio=Math.max(pw/img.width,ph/img.height);const iw=img.width*ratio,ih=img.height*ratio;ctx.drawImage(img,px+(pw-iw)/2,py+(ph-ih)/2,iw,ih)}else{ctx.fillStyle="#52657d";ctx.font="bold 92px Arial";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("ID",px+pw/2,py+ph/2)}ctx.restore();ctx.strokeStyle="#456079";ctx.lineWidth=4;roundRect(ctx,px,py,pw,ph,30);ctx.stroke();
+  ctx.textAlign="left";ctx.fillStyle="#77e5d5";ctx.font="800 22px Arial";ctx.fillText("PERSONAL IDENTITY",410,82);ctx.fillStyle="#a9b9cc";ctx.strokeStyle="#34546b";ctx.lineWidth=2;roundRect(ctx,960,55,170,42,21);ctx.stroke();ctx.font="700 17px Arial";ctx.textAlign="center";ctx.fillText("ID CARD",1045,82);
+  ctx.textAlign="left";const name=($("name").value.trim()||"YOUR NAME").toUpperCase();ctx.fillStyle="#f5f7fb";ctx.font="900 58px Arial";drawWrappedText(ctx,name,410,175,700,70);
+  drawField(ctx,"AGE",$("age").value.trim()||"—",410,310);drawField(ctx,"PHONE",$("phone").value.trim()||"—",700,310);drawField(ctx,"LICENSE NO.",$("license").value.trim()||"—",410,430);const exp=$("experience").value.trim();drawField(ctx,"DRIVING EXP.",exp?`${exp} ${exp==="1"?"year":"years"}`:"—",700,430);
+  ctx.fillStyle="#687e95";ctx.font="12px Arial";ctx.textAlign="right";ctx.fillText("GENERATED LOCALLY • NO DATA STORED",1140,720);
+  c.toBlob(blob=>{if(!blob){alert("Your browser could not create the image.");return}const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="id-card.png";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)},"image/png");
 });
-
-function roundRect(ctx,x,y,w,h,r){
-  ctx.beginPath();
-  ctx.moveTo(x+r,y);
-  ctx.arcTo(x+w,y,x+w,y+h,r);
-  ctx.arcTo(x+w,y+h,x,y+h,r);
-  ctx.arcTo(x,y+h,x,y,r);
-  ctx.arcTo(x,y,x+w,y,r);
-  ctx.closePath();
-}
-function drawField(ctx,label,value,x,y){
-  ctx.textAlign="left";
-  ctx.fillStyle="#7e91a8";
-  ctx.font="800 14px Arial";
-  ctx.fillText(label,x,y);
-  ctx.fillStyle="#f5f7fb";
-  ctx.font="700 25px Arial";
-  drawWrappedText(ctx,value,x,y+43,245,31);
-}
-function drawWrappedText(ctx,text,x,y,maxWidth,lineHeight){
-  const words=String(text).split(/\s+/);
-  let line="";
-  let yy=y;
-  for(const word of words){
-    const test=line?line+" "+word:word;
-    if(ctx.measureText(test).width>maxWidth && line){
-      ctx.fillText(line,x,yy);
-      line=word; yy+=lineHeight;
-    }else line=test;
-  }
-  if(line) ctx.fillText(line,x,yy);
-}
-function loadImage(src){
-  return new Promise((resolve,reject)=>{
-    const img=new Image();
-    img.onload=()=>resolve(img);
-    img.onerror=reject;
-    img.src=src;
-  });
-}
+function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
+function drawField(ctx,label,value,x,y){ctx.textAlign="left";ctx.fillStyle="#7e91a8";ctx.font="800 14px Arial";ctx.fillText(label,x,y);ctx.fillStyle="#f5f7fb";ctx.font="700 25px Arial";drawWrappedText(ctx,value,x,y+43,245,31)}
+function drawWrappedText(ctx,text,x,y,maxWidth,lineHeight){const words=String(text).split(/\s+/);let line="",yy=y;for(const word of words){const test=line?line+" "+word:word;if(ctx.measureText(test).width>maxWidth&&line){ctx.fillText(line,x,yy);line=word;yy+=lineHeight}else line=test}if(line)ctx.fillText(line,x,yy)}
+function loadImage(src){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=reject;img.src=src})}
 update();
 </script>
 </body>
